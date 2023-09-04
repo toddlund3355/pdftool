@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "pdftool": {
+      "commandName": "Project",
+      "commandLineArgs": "test.pdf"
+    }
+  }
+}

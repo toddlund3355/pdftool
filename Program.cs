@@ -19,7 +19,7 @@ public static class Program
 
                 StringBuilder builder = new StringBuilder();
                 builder.AppendFormat("# {0}\n\n", args[0]);
-                builder.AppendFormat("![{0}]({0})\n\n", args[0]);
+                builder.AppendFormat("![[{0}]]\n\n", args[0]);
                 builder.Append("## Words\n");
                 foreach (var word in words)
                 {

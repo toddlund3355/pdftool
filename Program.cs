@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using UglyToad.PdfPig;
@@ -8,7 +10,9 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        using (PdfDocument document = PdfDocument.Open(args[0]))
+        var originalFilename = args[0];
+        string jpgfilename = originalFilename.Replace(".pdf", ".jpg");
+        using (PdfDocument document = PdfDocument.Open(originalFilename))
         {
             foreach (Page page in document.GetPages())
             {
@@ -18,8 +22,9 @@ public static class Program
                 IEnumerable<Word> words = page.GetWords();
 
                 StringBuilder builder = new StringBuilder();
-                builder.AppendFormat("# {0}\n\n", args[0]);
-                builder.AppendFormat("![[{0}]]\n\n", args[0]);
+                builder.AppendFormat("# {0}\n\n", originalFilename);
+                builder.AppendFormat("[{0}]({0})\n\n", originalFilename);
+                builder.AppendFormat("![{0}]({0})\n\n", jpgfilename);
                 builder.Append("## Words\n");
                 foreach (var word in words)
                 {
@@ -29,10 +34,14 @@ public static class Program
                 var fullfile = builder.ToString();
                 // Console.Write(fullfile);
 
-                string newfilename = args[0].Replace(".pdf", ".md");
+                string mdfilename = originalFilename.Replace(".pdf", ".md");
 
-                File.WriteAllText(newfilename, fullfile);
 
+                File.WriteAllText(mdfilename, fullfile);
+                var bytearray = File.ReadAllBytes(originalFilename);
+                var base64pdf = Convert.ToBase64String(bytearray);
+
+                PDFtoImage.Conversion.SavePng(jpgfilename, base64pdf);
                 // IEnumerable<IPdfImage> images = page.GetImages();
             }
         }

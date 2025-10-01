@@ -29,31 +29,32 @@ public static class Program
 
         using (PdfDocument document = PdfDocument.Open(originalFilename))
         {
+            StringBuilder builder = new StringBuilder();
+            builder.AppendFormat("# {0}\n\n", originalFilename);
+            builder.AppendFormat("[{0}]({0})\n\n", originalFilename);
+            builder.AppendFormat("![{0}]({0})\n\n", jpgfilename);
+            builder.Append("## Words\n");
+
+            bool isFirstPage = true;
             foreach (Page page in document.GetPages())
             {
-                IReadOnlyList<Letter> letters = page.Letters;
-                string example = string.Join(string.Empty, letters.Select(x => x.Value));
-
                 IEnumerable<Word> words = page.GetWords();
-
-                StringBuilder builder = new StringBuilder();
-                builder.AppendFormat("# {0}\n\n", originalFilename);
-                builder.AppendFormat("[{0}]({0})\n\n", originalFilename);
-                builder.AppendFormat("![{0}]({0})\n\n", jpgfilename);
-                builder.Append("## Words\n");
                 foreach (var word in words)
                 {
                     builder.AppendFormat("{0} ", word);
                 }
-                builder.Append("\n");
-                var fullfile = builder.ToString();
 
-                File.WriteAllText(mdfilename, fullfile);
-                var bytearray = File.ReadAllBytes(originalFilename);
-                var base64pdf = Convert.ToBase64String(bytearray);
-
-                PDFtoImage.Conversion.SavePng(jpgfilename, base64pdf);
+                if (isFirstPage)
+                {
+                    var bytearray = File.ReadAllBytes(originalFilename);
+                    var base64pdf = Convert.ToBase64String(bytearray);
+                    PDFtoImage.Conversion.SavePng(jpgfilename, base64pdf);
+                    isFirstPage = false;
+                }
             }
+            builder.Append("\n");
+            var fullfile = builder.ToString();
+            File.WriteAllText(mdfilename, fullfile);
         }
     }
 }

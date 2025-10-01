@@ -11,7 +11,22 @@ public static class Program
     public static void Main(string[] args)
     {
         var originalFilename = args[0];
-        string jpgfilename = originalFilename.Replace(".pdf", ".jpg");
+        // Remove spaces from the filename (not the path)
+        var directory = Path.GetDirectoryName(originalFilename) ?? "";
+        var filenameOnly = Path.GetFileNameWithoutExtension(originalFilename).Replace(" ", "");
+        var extension = Path.GetExtension(originalFilename);
+        var sanitizedFilename = Path.Combine(directory, filenameOnly + extension);
+
+        // If the sanitized filename is different, rename the file
+        if (!string.Equals(originalFilename, sanitizedFilename, StringComparison.Ordinal))
+        {
+            File.Move(originalFilename, sanitizedFilename);
+            originalFilename = sanitizedFilename;
+        }
+
+        string jpgfilename = Path.Combine(directory, filenameOnly + ".jpg");
+        string mdfilename = Path.Combine(directory, filenameOnly + ".md");
+
         using (PdfDocument document = PdfDocument.Open(originalFilename))
         {
             foreach (Page page in document.GetPages())
@@ -32,17 +47,12 @@ public static class Program
                 }
                 builder.Append("\n");
                 var fullfile = builder.ToString();
-                // Console.Write(fullfile);
-
-                string mdfilename = originalFilename.Replace(".pdf", ".md");
-
 
                 File.WriteAllText(mdfilename, fullfile);
                 var bytearray = File.ReadAllBytes(originalFilename);
                 var base64pdf = Convert.ToBase64String(bytearray);
 
                 PDFtoImage.Conversion.SavePng(jpgfilename, base64pdf);
-                // IEnumerable<IPdfImage> images = page.GetImages();
             }
         }
     }
